@@ -1,8 +1,4 @@
-# File: TransNet.R
-# Date: 8/15/18
-# Author: Adriano Schneider, John Williams & Mike Cioce
-# Purpose: To generate a pathogen transmission network graph utilizing genomic data and calculate importance of network based on centrality metrics
-
+## TransNet Functions for Shiny
 library(shiny)
 library(ape)
 library(castor)
@@ -14,18 +10,12 @@ library(igraph)
 library(data.table)
 library(magrittr)
 
-#Set working directory
-wd <- readline(prompt = "Please insert the full path of your working directory: ")
-setwd(wd)
-
-#\
+###############################{statesConfirmed}
 # statesConfirmed(nextStates,charLabelList) returns a true value if each state read in the next record of the 
 #     character matrix can be mapped to an integer state that is within the bounds of the character specified
 #     (i.e. the integer value i is 1<i<length(characterLabel_specified)). Otherwise it throws an error.
-#/
-
-statesConfirmed <- function(nextStates,charLabelList) {
-  
+#
+statesConfirmed <- function(nextStates,charLabelList){
   returnValue <- TRUE
   for (i in 1:length(charLabelList)) {
     nextState <- nextStates[i]
@@ -40,15 +30,13 @@ statesConfirmed <- function(nextStates,charLabelList) {
       stop()
     }
   }
-  returnValue
-  
+  return(returnValue)
 }
 
-#\
+###############################{mapStates}
 # mapStates(nextStates,symbols,missing,gap) is a function that maps the next record of character state symbols to
 #     integer values. it then returns an integer vector of the mapped states
-#/
-
+#
 mapStates <- function(nextStates, symbols, missing, gap) {
   mappedStates <- c()
   for (i in 1:length(nextStates)) {
@@ -68,10 +56,10 @@ mapStates <- function(nextStates, symbols, missing, gap) {
     }
     mappedStates <- c(mappedStates,stateMap)
   }
-  mappedStates
+  return(mappedStates)
 }
 
-#\
+###############################{getMetadata}
 #  getMetadata <- function(fileName) is a custom function that collects the metadata from the nexus file and returns it
 #     in a list object
 #
@@ -111,7 +99,7 @@ mapStates <- function(nextStates, symbols, missing, gap) {
 #              attributes:
 #                 attr(.,"numTaxa") - a numeric vector whose value is the number of taxa in the character vector
 #              
-#/
+#
 
 getMetadata <- function(fileName) {
   
@@ -329,16 +317,8 @@ getMetadata <- function(fileName) {
   returnList$charSymbolFormat <- charSymbolFormat
   returnList$taxaData <- taxaData
   close(fileConnection)
-  returnList
+  return(returnList)
 }
-
-fileName <- readline(prompt = "Type in the full path to the nexus file you want to read in: ")
-nexusTree2 <- read.nexus(fileName)
-nexusData <- getMetadata(fileName)
-
-charIndex <- readline(prompt ="Type the number equivalent to the character state index of the nexus file you want to build the network from: ")
-characterIndex <- as.numeric(charIndex) #Transforms the input from string to numeric so it can be loaded on metadataRef
-rootedTree <- nexusTree2
 
 #\
 #  rootedTree structure:
@@ -443,80 +423,15 @@ metastates <- nexusData$characterLabels[[characterIndex]]
 nodes <- data.frame(id = 1:length(metastates), label = metastates) #, fixed = list(x = T, y = T))
 igraph.Object <- graph.data.frame(edges,directed = T,vertices = nodes)
 
-ui <- readline(prompt = "Select a centrality metric. Enter 0 to simply calculate all metrics, 1 for indegree, 2 for outdegree, 3 betweenness, 4 closeness, 5 for degree or 6 for Source Hub Ratio: ")
-if (ui == "0") #Calculates all the metrics and export on a text file delimited by comma.
-{  
-  indegree <- centr_degree(igraph.Object, mode = c("in")) #Calculates indegree = Destiny of shifts of metadata state for all nodes
-  outdegree <- centr_degree(igraph.Object, mode = c("out")) #Calculates the Outdegree = Source of shifts of metadata state for all nodes
-  all.degree <- centr_degree(igraph.Object, mode = c("all")) #Calculates the Degree = Hub, in and out of shifts of metadata state
-  between.centrality <- betweenness(igraph.Object) #Calculates Betweenness Centrality
-  closeness.centrality <- closeness(igraph.Object, mode = c("all")) #Calculates Closeness Centrality
-  sourcehubratio <- outdegree$res/all.degree$res # This is the basic "Source Hub Ratio", still have to work on the normalizing formula
-  
-  #Create empty matrix and populate with the metrics
-  outputFileMatrix <- matrix(ncol = 0, nrow = length(metastates)) %>%
-    cbind(metastates,all.degree$res,indegree$res,outdegree$res,between.centrality,closeness.centrality,sourcehubratio)# %>%
-  colnames(outputFileMatrix, do.NULL = FALSE)
-  colnames(outputFileMatrix) <- c("Metastates","Degree Centrality","Indegree Centrality","Outdegree Centrality","Betweenness Centrality","Closeness Centrality", "Source Hub Ratio") 
-  write.table(outputFileMatrix,file = "metrics.txt",sep = ",",fileEncoding = "UTF-8",col.names = TRUE,
-              row.names = FALSE,quote = FALSE)
-} else if (ui == "1") #indegree: enter the indegree as the value
-{
-  indegree <- centr_degree(igraph.Object, mode = c("in"))
-  nodes <- data.frame(nodes, value = indegree$res, group = indegree$res)
-  graph <- visNetwork(nodes = nodes, edges = edges, main = "Indegree Centrality",height = "768px", width = "1024")%>%
-    visInteraction(navigationButtons = TRUE)%>%
-    visOptions(selectedBy = "value", highlightNearest = TRUE, 
-               nodesIdSelection = TRUE)%>%
-    visEdges(arrows = list(to = list(enabled = T, scaleFactor = 0.75)))
-}else if (ui == "2") #outdegree:
-{
-  outdegree <- centr_degree(igraph.Object, mode = c("out"))
-  nodes <- data.frame(nodes, value = outdegree$res, group = outdegree$res)
-  graph <- visNetwork(nodes = nodes, edges = edges, main = "Outdegree Centrality",height = "768px", width = "1024")%>%
-    visInteraction(navigationButtons = TRUE)%>%
-    visOptions(selectedBy = "value", highlightNearest = TRUE, 
-               nodesIdSelection = TRUE)%>%
-    visEdges(arrows = list(to = list(enabled = T, scaleFactor = 0.75)))
-}else if (ui == "3") #betweenness centrality
-{
-  between.centrality <- betweenness(igraph.Object)
-  nodes <- nodes <- data.frame(nodes, value = between.centrality, group = between.centrality)
-  graph <- visNetwork(nodes = nodes, edges = edges, main = "Betweenness Centrality",height = "768px", width = "1024")%>%
-    visInteraction(navigationButtons = TRUE)%>%
-    visOptions(selectedBy = "value", highlightNearest = TRUE, 
-               nodesIdSelection = TRUE)%>%
-    visEdges(arrows = list(to = list(enabled = T, scaleFactor = 0.75)))
-}else if(ui == "4") #closeness centrality
-{
-  closeness.centrality <- closeness(igraph.Object, mode = c("all"))
-  nodes <- data.frame(nodes, value = closeness.centrality, group = closeness.centrality)
-  graph <- visNetwork(nodes = nodes, edges = edges, main = "Closeness Centrality",height = "768px", width = "1024")%>%
-    visInteraction(navigationButtons = TRUE)%>%
-    visOptions(selectedBy = "value", highlightNearest = TRUE, 
-               nodesIdSelection = TRUE)%>%
-    visEdges(arrows = list(to = list(enabled = T, scaleFactor = 0.75)))
-}else if (ui == "5") #all indegree/outdegree = degree centrality
-{
-  all.degree <- centr_degree(igraph.Object, mode = c("all"))
-  nodes <- data.frame(nodes, value = all.degree$res, group = all.degree$res)
-  graph <- visNetwork(nodes = nodes, edges = edges, main = "Degree Centrality",height = "768px", width = "1024")%>%
-    visInteraction(navigationButtons = TRUE)%>%
-    visOptions(selectedBy = "value", highlightNearest = TRUE, 
-               nodesIdSelection = TRUE)%>%
-    visEdges(arrows = list(to = list(enabled = T, scaleFactor = 0.75)))
-}else if (ui == "6") #Source Hub Ratio
-{
-  outdegree <- centr_degree(igraph.Object, mode = c("out")) #Calculates the Outdegree = Source of shifts of metadata state for all nodes
-  all.degree <- centr_degree(igraph.Object, mode = c("all")) #Calculates the Degree = Hub, in and out of shifts of metadata state
-  sourcehubratio <- indegree$res/all.degree$res # This is the basic "Source Hub Ratio", still have to work on the normalizing formula
-  nodes <- data.frame(nodes, value = sourcehubratio, group = sourcehubratio)
-  graph <- visNetwork(nodes = nodes, edges = edges, main = "Source Hub Ratio: Dead-end ~0 / Hub = .5 / Source = ~1",height = "768px", width = "1024")%>%
-    visInteraction(navigationButtons = TRUE)%>%
-    visOptions(selectedBy = "value", highlightNearest = TRUE, 
-               nodesIdSelection = TRUE)%>%
-    visEdges(arrows = list(to = list(enabled = T, scaleFactor = 0.75)))
-  
-}  
+indegree <- centr_degree(igraph.Object, mode = c("in")) #Calculates indegree = Destiny of shifts of metadata state for all nodes
+outdegree <- centr_degree(igraph.Object, mode = c("out")) #Calculates the Outdegree = Source of shifts of metadata state for all nodes
+all.degree <- centr_degree(igraph.Object, mode = c("all")) #Calculates the Degree = Hub, in and out of shifts of metadata state
+between.centrality <- betweenness(igraph.Object) #Calculates Betweenness Centrality
+closeness.centrality <- closeness(igraph.Object, mode = c("all")) #Calculates Closeness Centrality
+sourcehubratio <- outdegree$res/all.degree$res # This is the basic "Source Hub Ratio", still have to work on the normalizing formula
 
-print("Thank you for using TransNet, type print(graph) to print your network or open your working directory to view the calculated metrics")
+#Create empty matrix and populate with the metrics
+outputFileMatrix <- matrix(ncol = 0, nrow = length(metastates)) %>%
+  cbind(metastates,all.degree$res,indegree$res,outdegree$res,between.centrality,closeness.centrality,sourcehubratio)# %>%
+colnames(outputFileMatrix, do.NULL = FALSE)
+colnames(outputFileMatrix) <- c("Metastates","Degree Centrality","Indegree Centrality","Outdegree Centrality","Betweenness Centrality","Closeness Centrality", "Source Hub Ratio") 
