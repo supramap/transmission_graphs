@@ -2,9 +2,8 @@ library(shiny)
 library(shinythemes)
 
 ui <- tagList(
-  #shinythemes::themeSelector(),
   navbarPage(
-    theme = "superhero",
+    theme = shinytheme("flatly"),
     title = "TransNet",
     tabPanel("Network Visualizer",
              sidebarPanel(
