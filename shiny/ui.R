@@ -8,13 +8,14 @@ ui <- tagList(
     title = "TransNet",
     tabPanel("Network Visualizer",
              sidebarPanel(
+               width = 3,
                fileInput('nexus1',
                          label = 'Choose your NEXUS File',
                          accept = c('text/nexus', 'text/plain', '.nex', '.nexus')),
                numericInput('charIndex',
                             label = 'Character State Index',
                             value = 1,
-                            min = 0,
+                            min = 1,
                             step = 1,
                             width = "50%"),
                radioButtons("metricradio",
@@ -29,23 +30,26 @@ ui <- tagList(
                actionButton("plotbutton", label = "Generate Network", class = "btn-primary")
              ),
              mainPanel(
+               width = 9,
                tabsetPanel(
                  tabPanel("Network Plot",
-                          h1("Header 1"),
-                          h2("Header 2"),
-                          h3("Header 3"),
-                          h4("Header 4"),
-                          h5("Header 5")
+                          # plotOutput("graphplot")
+                          visNetworkOutput("graphplot")
                  ),
                  tabPanel("Nexus Preview",
-                          h4("Nexus Metadata"),
-                          textOutput("nexustable")),
-                 tabPanel("Metrics", "This panel is intentionally left blank",
-                          downloadButton("downloadmetrics", "Download Output Metrics"))
+                          h4("Nexus File Contents"),
+                          tableOutput("nexustable")
+                          ),
+                 tabPanel("Metrics",
+                          # DT::dataTableOutput("metricstable",
+                          #                     width = "75%")
+                          downloadButton("downloadmetrics", "Download Output Metrics"),
+                          tableOutput("metricstable")
+                          )
                )
              )
     ),
     tabPanel("Network Comparison",
-             "This panel is currently blank")
+             "Coming soon...")
   )
 )

@@ -1,4 +1,4 @@
-#############################
+#'############################
 #' @title TransNet
 #' @description TransNet works to generate a pathogen transmission network graph utilizing genomic data and calculate importance of network based on centrality metrics.
 #' @author Adriano Schneider
@@ -15,8 +15,12 @@
 #' @import network
 #' @import igraph
 #' @import data.table
-#' @import magrittr 
-#############################
+#' @import magrittr
+#' @export statesConfirmed
+#' @export mapStates
+#' @export getMetadata
+#' @export makeTransNet
+#'############################
 # Load Packages
 # library(shiny)
 # library(ape)
@@ -29,14 +33,14 @@
 # library(data.table)
 # library(magrittr)
 
-#############################
+#'############################
 #' @name statesConfirmed
 #' @param nextStates
 #' @param charLabelList
 #' @description Returns a true value if each state read in the next record of the character matrix can be mapped to an integer state that is within the bounds of the character specified.
 #'     (i.e. the integer value i is 1<i<length(characterLabel_specified)). Otherwise it throws an error.
 #'
-#############################
+#'############################
 statesConfirmed <- function(nextStates,charLabelList) {
   
   returnValue <- TRUE
@@ -57,7 +61,7 @@ statesConfirmed <- function(nextStates,charLabelList) {
   
 }
 
-##############################
+#'#############################
 #' @name mapStates
 #' @param nextStates
 #' @param symbols
@@ -65,7 +69,7 @@ statesConfirmed <- function(nextStates,charLabelList) {
 #' @param gap
 #' @description Maps the next record of character state symbols to integer values.
 #'     It then returns an integer vector of the mapped states.
-##############################
+#'#############################
 
 mapStates <- function(nextStates, symbols, missing, gap) {
   mappedStates <- c()
@@ -89,7 +93,7 @@ mapStates <- function(nextStates, symbols, missing, gap) {
   mappedStates
 }
 
-##############################
+#'#############################
 #' @name getMetadata Collects the metadata from the nexus file and returns it in a list object.
 #' @fileName A character vector containing a string literal that is the directory path to the nexus file to be read in.
 #' @return 
@@ -122,7 +126,7 @@ mapStates <- function(nextStates, symbols, missing, gap) {
 #'              attributes:
 #'                 attr(.,"numTaxa") - a numeric vector whose value is the number of taxa in the character vector
 #'              
-##############################
+#'#############################
 
 getMetadata <- function(fileName) {
   
@@ -363,7 +367,7 @@ getMetadata <- function(fileName) {
   returnList
 }
 
-#############################
+#'############################
 #' @name maketransnet
 #' @param fileName Path to the nexus file to be read in.
 #'    Character string.
@@ -408,7 +412,7 @@ getMetadata <- function(fileName) {
 #'     of the character trait being studied. The value at $ancestral_likelihoods[n,m] is 
 #'     the probability of interior node n being character state m
 #'   $success - a logical vector of length one that says whether the process was a success or not
-#############################
+#'############################
 
 makeTransNet <- function(fileName, charIndex, centralityMetric){
   # fileName <- readline(prompt = "Type in the full path to the nexus file you want to read in: ")
@@ -416,7 +420,11 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
   nexusData <- getMetadata(fileName)
   
   #charIndex <- readline(prompt ="Type the number equivalent to the character state index of the nexus file you want to build the network from: ")
-  characterIndex <- as.numeric(charIndex) # Transforms the input from string to numeric so it can be loaded on metadataRef
+  if (charIndex < 1){
+    cat("ERROR: The character state index must be > 0.")
+  } else{
+    characterIndex <- as.numeric(charIndex) # Transforms the input from string to numeric so it can be loaded on metadataRef
+  }
   rootedTree <- nexusTree2
   
   metadataRef <- nexusData$charMatrix[,characterIndex] # CharacterIndex change the number of the character state index of the nexus file you want to use
@@ -501,48 +509,53 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
   
   #ui <- readline(prompt = "Select a centrality metric. Enter 0 to simply calculate all metrics, 1 for indegree, 2 for outdegree, 3 betweenness, 4 closeness, 5 for degree or 6 for Source Hub Ratio: ")
   ui <- as.character(centralityMetric)
+  
+  ## Create Matrix of all Metrics
+  # Calculates all the metrics and export on a text file delimited by comma.
+  indegree <- centr_degree(igraph.Object,
+                           mode = c("in")) #Calculates indegree = Destiny of shifts of metadata state for all nodes
+  outdegree <- centr_degree(igraph.Object,
+                            mode = c("out")) #Calculates the Outdegree = Source of shifts of metadata state for all nodes
+  all.degree <- centr_degree(igraph.Object,
+                             mode = c("all")) #Calculates the Degree = Hub, in and out of shifts of metadata state
+  between.centrality <- betweenness(igraph.Object) #Calculates Betweenness Centrality
+  closeness.centrality <- closeness(igraph.Object,
+                                    mode = c("all")) #Calculates Closeness Centrality
+  sourcehubratio <- outdegree$res/all.degree$res # This is the basic "Source Hub Ratio", still have to work on the normalizing formula
+  
+  # Create empty matrix and populate with the metrics
+  outputFileMatrix <- matrix(ncol = 0,
+                             nrow = length(metastates)) %>%
+    cbind(metastates,
+          all.degree$res,
+          indegree$res,
+          outdegree$res,
+          between.centrality,
+          closeness.centrality,
+          sourcehubratio)
+  
+  colnames(outputFileMatrix,
+           do.NULL = FALSE)
+  colnames(outputFileMatrix) <- c("Metastates",
+                                  "Degree Centrality",
+                                  "Indegree Centrality",
+                                  "Outdegree Centrality",
+                                  "Betweenness Centrality",
+                                  "Closeness Centrality",
+                                  "Source Hub Ratio")
+  
+  metrics <- as.data.frame(outputFileMatrix)
+  
+  write.table(metrics,
+              file = paste0(fileName,"_metrics.csv"),
+              sep = ",",
+              fileEncoding = "UTF-8",
+              col.names = TRUE,
+              row.names = FALSE,
+              quote = FALSE)
+  
   if (ui > 0 & ui <= 6){
-    if (ui == "0"){
-      # Calculates all the metrics and export on a text file delimited by comma.
-      indegree <- centr_degree(igraph.Object,
-                               mode = c("in")) #Calculates indegree = Destiny of shifts of metadata state for all nodes
-      outdegree <- centr_degree(igraph.Object,
-                                mode = c("out")) #Calculates the Outdegree = Source of shifts of metadata state for all nodes
-      all.degree <- centr_degree(igraph.Object,
-                                 mode = c("all")) #Calculates the Degree = Hub, in and out of shifts of metadata state
-      between.centrality <- betweenness(igraph.Object) #Calculates Betweenness Centrality
-      closeness.centrality <- closeness(igraph.Object,
-                                        mode = c("all")) #Calculates Closeness Centrality
-      sourcehubratio <- outdegree$res/all.degree$res # This is the basic "Source Hub Ratio", still have to work on the normalizing formula
-      
-      # Create empty matrix and populate with the metrics
-      outputFileMatrix <- matrix(ncol = 0,
-                                 nrow = length(metastates)) %>%
-        cbind(metastates,
-              all.degree$res,
-              indegree$res,
-              outdegree$res,
-              between.centrality,
-              closeness.centrality,
-              sourcehubratio)# %>%
-      colnames(outputFileMatrix,
-               do.NULL = FALSE)
-      colnames(outputFileMatrix) <- c("Metastates",
-                                      "Degree Centrality",
-                                      "Indegree Centrality",
-                                      "Outdegree Centrality",
-                                      "Betweenness Centrality",
-                                      "Closeness Centrality",
-                                      "Source Hub Ratio") 
-      write.table(outputFileMatrix,
-                  file = "metrics.txt",
-                  sep = ",",
-                  fileEncoding = "UTF-8",
-                  col.names = TRUE,
-                  row.names = FALSE,
-                  quote = FALSE)
-      
-    } else if (ui == "1"){
+    if (ui == "1"){
       # indegree
       indegree <- centr_degree(igraph.Object,
                                mode = c("in"))
@@ -649,7 +662,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           edges = edges,
                           main = "Source Hub Ratio: Dead-end ~0 / Hub = .5 / Source = ~1",
                           height = "768px",
-                          width = "1024")%>%
+                          width = "1024") %>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
                    highlightNearest = TRUE, 
@@ -659,7 +672,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
     }
     
   } else {
-    cat("Error: Please enter an integer between 1 and 6 to select a centrality metric.")
+    cat("ERROR: Please enter an integer between 1 and 6 to select a centrality metric.")
   }
   
   return(graph)
