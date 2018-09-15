@@ -31,24 +31,21 @@ ui <- tagList(
              mainPanel(
                tabsetPanel(
                  tabPanel("Network Plot",
-                          h4("Table"),
-                          tableOutput("table"),
-                          h4("Verbatim text output"),
-                          verbatimTextOutput("txtout"),
                           h1("Header 1"),
                           h2("Header 2"),
                           h3("Header 3"),
                           h4("Header 4"),
                           h5("Header 5")
                  ),
-                 tabPanel("Nexus Preview", "This panel is intentionally left blank"),
+                 tabPanel("Nexus Preview",
+                          h4("Nexus Metadata"),
+                          textOutput("nexustable")),
                  tabPanel("Metrics", "This panel is intentionally left blank",
                           downloadButton("downloadmetrics", "Download Output Metrics"))
                )
              )
     ),
     tabPanel("Network Comparison",
-             icon = ,
              "This panel is currently blank")
   )
 )

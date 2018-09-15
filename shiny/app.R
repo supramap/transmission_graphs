@@ -2,5 +2,8 @@
 library(shiny)
 
 ## Run the application 
-shinyApp(ui = "ui.R",
-         server = "server.R")
+# shinyApp(ui = "ui.R",
+#          server = "server.R")
+
+runApp('shiny', display.mode = "showcase")
+
