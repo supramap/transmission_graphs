@@ -14,7 +14,7 @@ library(data.table)
 library(DT)
 library(magrittr)
 library(htmlwidgets)
-source("../transnet.R")
+source("transnet.R")
 
 ## Run the application 
 # shinyApp(ui = "ui.R",

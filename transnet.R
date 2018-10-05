@@ -567,6 +567,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           main = "Indegree Centrality",
                           height = "768px",
                           width = "1024") %>%
+        visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
                    highlightNearest = TRUE, 
@@ -585,6 +586,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           main = "Outdegree Centrality",
                           height = "768px",
                           width = "1024") %>%
+        visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
                    highlightNearest = TRUE, 
@@ -603,6 +605,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           main = "Betweenness Centrality",
                           height = "768px",
                           width = "1024") %>%
+        visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
                    highlightNearest = TRUE, 
@@ -622,6 +625,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           main = "Closeness Centrality",
                           height = "768px",
                           width = "1024") %>%
+        visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
                    highlightNearest = TRUE, 
@@ -641,6 +645,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           main = "Degree Centrality",
                           height = "768px",
                           width = "1024") %>%
+        visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
                    highlightNearest = TRUE, 
@@ -654,7 +659,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                                 mode = c("out")) #Calculates the Outdegree = Source of shifts of metadata state for all nodes
       all.degree <- centr_degree(igraph.Object,
                                  mode = c("all")) #Calculates the Degree = Hub, in and out of shifts of metadata state
-      sourcehubratio <- indegree$res/all.degree$res # This is the basic "Source Hub Ratio", still have to work on the normalizing formula
+      sourcehubratio <- outdegree$res/all.degree$res # This is the basic "Source Hub Ratio", still have to work on the normalizing formula
       nodes <- data.frame(nodes,
                           value = sourcehubratio,
                           group = sourcehubratio)
@@ -663,6 +668,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           main = "Source Hub Ratio: Dead-end ~0 / Hub = .5 / Source = ~1",
                           height = "768px",
                           width = "1024") %>%
+        visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
                    highlightNearest = TRUE, 
