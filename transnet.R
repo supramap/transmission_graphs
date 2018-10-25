@@ -20,6 +20,7 @@
 #' @export mapStates
 #' @export getMetadata
 #' @export makeTransNet
+#' @export listCharacterStates
 #'############################
 # Load Packages
 # library(shiny)
@@ -366,6 +367,18 @@ getMetadata <- function(fileName) {
   close(fileConnection)
   returnList
 }
+#'############################
+#' @name listCharacterStates
+#' @description Returns data frame of available character states in the input file.
+#' @param data Input data (result from getMetadata function)
+#'############################
+
+listCharacterStates <- function(data){
+  chardf <- data.frame(`Index` = 1:length(data$characterLabels),
+                       `Character State` = names(data$characterLabels))
+  return(chardf)
+}
+
 
 #'############################
 #' @name maketransnet
@@ -564,9 +577,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           group = indegree$res)
       graph <- visNetwork(nodes = nodes,
                           edges = edges,
-                          main = "Indegree Centrality",
-                          height = "768px",
-                          width = "1024") %>%
+                          main = "Indegree Centrality") %>%
         visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
@@ -583,9 +594,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           group = outdegree$res)
       graph <- visNetwork(nodes = nodes,
                           edges = edges,
-                          main = "Outdegree Centrality",
-                          height = "768px",
-                          width = "1024") %>%
+                          main = "Outdegree Centrality") %>%
         visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
@@ -602,9 +611,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                                    group = between.centrality)
       graph <- visNetwork(nodes = nodes,
                           edges = edges,
-                          main = "Betweenness Centrality",
-                          height = "768px",
-                          width = "1024") %>%
+                          main = "Betweenness Centrality") %>%
         visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
@@ -622,9 +629,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           group = closeness.centrality)
       graph <- visNetwork(nodes = nodes,
                           edges = edges,
-                          main = "Closeness Centrality",
-                          height = "768px",
-                          width = "1024") %>%
+                          main = "Closeness Centrality") %>%
         visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
@@ -642,9 +647,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           group = all.degree$res)
       graph <- visNetwork(nodes = nodes,
                           edges = edges,
-                          main = "Degree Centrality",
-                          height = "768px",
-                          width = "1024") %>%
+                          main = "Degree Centrality") %>%
         visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",
@@ -665,9 +668,7 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
                           group = sourcehubratio)
       graph <- visNetwork(nodes = nodes,
                           edges = edges,
-                          main = "Source Hub Ratio: Dead-end ~0 / Hub = .5 / Source = ~1",
-                          height = "768px",
-                          width = "1024") %>%
+                          main = "Source Hub Ratio: Dead-end ~0 / Hub = .5 / Source = ~1") %>%
         visPhysics(solver = "repulsion")%>%
         visInteraction(navigationButtons = TRUE) %>%
         visOptions(selectedBy = "value",

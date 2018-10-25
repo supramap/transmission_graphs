@@ -15,10 +15,31 @@ source("../transnet.R")
 
 server <- function(input, output) {
   
+  ## List Character State Index Choices
+  characters <- eventReactive(input$getlistbutton, {
+    data <- getMetadata(input$nexus1$datapath)
+    characters <- listCharacterStates(data)
+  })
+  output$characterlist <- DT::renderDataTable({DT::datatable(characters(),
+                                                             rownames = FALSE,
+                                                             colnames = c("Index",
+                                                                          "Character State"),
+                                                             options = list(dom = 't',
+                                                                            autoWidth = TRUE,
+                                                                            initComplete = JS(
+                                                                              "function(settings, json) {",
+                                                                              "$(this.api().table().header()).css({'background-color': '#2d3e4f', 'color': '#fff'});",
+                                                                              "}")),
+                                                             selection = 'single')})
+  
+  #output$characterlist <- renderTable({characters()})
+  
+  
   ## Network Viz
   graph <- eventReactive(input$plotbutton, {
     graph <-  makeTransNet(fileName = input$nexus1$datapath,
-                           charIndex = input$charIndex,
+                           #charIndex = input$charIndex,
+                           charIndex = input$characterlist_row_last_clicked,
                            centralityMetric = input$metricradio)
   })
   
@@ -32,12 +53,24 @@ server <- function(input, output) {
   })
   
   ## Nexus File Output
-  # output$metricstable <- DT::renderDataTable({DT::datatable(read.csv(paste0(input$nexus1$datapath,"_metrics.csv")))})
+  output$metricstable <- DT::renderDataTable({DT::datatable(read.csv(paste0(input$nexus1$datapath,"_metrics.csv")),
+                                                            colnames = c("Metastates",
+                                                                         "Degree",
+                                                                         "Indegree",
+                                                                         "Outdegree",
+                                                                         "Betweeness",
+                                                                         "Closeness",
+                                                                         "Source Hub Ratio"),
+                                                            options = list(autoWidth = TRUE,
+                                                                           initComplete = JS(
+                                                                             "function(settings, json) {",
+                                                                             "$(this.api().table().header()).css({'background-color': '#2d3e4f', 'color': '#fff'});",
+                                                                             "}")))})
   
-  output$metricstable <- renderTable({
-    metrics <- read.csv(paste0(input$nexus1$datapath,"_metrics.csv"))
-    return(metrics)
-  })
+  # output$metricstable <- renderTable({
+  #   metrics <- read.csv(paste0(input$nexus1$datapath,"_metrics.csv"))
+  #   return(metrics)
+  # })
   
   # Downloadable CSV of metrics
   output$downloadmetrics <- downloadHandler(

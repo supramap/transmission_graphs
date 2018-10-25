@@ -11,12 +11,15 @@ ui <- tagList(
                fileInput('nexus1',
                          label = 'Choose your NEXUS File',
                          accept = c('text/nexus', 'text/plain', '.nex', '.nexus')),
-               numericInput('charIndex',
-                            label = 'Character State Index',
-                            value = 1,
-                            min = 1,
-                            step = 1,
-                            width = "50%"),
+               actionButton("getlistbutton", label = "List Character States", class = "btn-primary"),
+               #tableOutput("characterlist"),
+               dataTableOutput("characterlist"),
+               # numericInput('charIndex',
+               #              label = 'Character State Index',
+               #              value = 1,
+               #              min = 1,
+               #              step = 1,
+               #              width = "50%"),
                radioButtons("metricradio",
                             label ="Centrality Metric",
                             choices = list("Indegree" = 1,
@@ -40,10 +43,9 @@ ui <- tagList(
                           tableOutput("nexustable")
                           ),
                  tabPanel("Metrics",
-                          # DT::dataTableOutput("metricstable",
-                          #                     width = "75%")
                           downloadButton("downloadmetrics", "Download Output Metrics"),
-                          tableOutput("metricstable")
+                          DT::dataTableOutput("metricstable")
+                          # tableOutput("metricstable")
                           )
                )
              )
