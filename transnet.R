@@ -1,6 +1,6 @@
 #'############################
-#' @title TransNet
-#' @description TransNet works to generate a pathogen transmission network graph utilizing genomic data and calculate importance of network based on centrality metrics.
+#' @title StrainHub
+#' @description StrainHub works to generate a pathogen transmission network graph utilizing genomic data and calculate importance of network based on centrality metrics.
 #' @author Adriano Schneider
 #' @author John Williams
 #' @author Mike Cioce

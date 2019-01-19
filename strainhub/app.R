@@ -1,4 +1,4 @@
-## Shiny Web Application for Transmission Graphs
+## Shiny Web Application for Transmission Graphs - StrainHub
 library(shiny)
 
 ## Load other libraries
@@ -20,7 +20,7 @@ source("transnet.R")
 # shinyApp(ui = "ui.R",
 #          server = "server.R")
 
-runApp('shiny')
+runApp('strainhub')
 
 #runApp('shiny', display.mode = "showcase")
 

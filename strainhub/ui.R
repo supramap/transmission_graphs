@@ -4,7 +4,7 @@ library(shinythemes)
 ui <- tagList(
   navbarPage(
     theme = shinytheme("flatly"),
-    title = "TransNet",
+    title = "StrainHub",
     tabPanel("Network Visualizer",
              sidebarPanel(
                width = 3,
@@ -50,7 +50,7 @@ ui <- tagList(
                )
              )
     ),
-    tabPanel("Network Comparison",
-             "Coming soon...")
+    tabPanel("About",
+             includeMarkdown("../ABOUT.md"))
   )
 )
