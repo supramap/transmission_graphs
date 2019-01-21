@@ -8,20 +8,20 @@ ui <- tagList(
     tabPanel("Network Visualizer",
              sidebarPanel(
                width = 3,
-               fileInput('nexus1',
-                         label = 'Choose your NEXUS File',
-                         accept = c('text/nexus', 'text/plain', '.nex', '.nexus')),
-               actionButton("getlistbutton", label = "List Character States", class = "btn-primary"),
-               #tableOutput("characterlist"),
-               dataTableOutput("characterlist"),
-               # numericInput('charIndex',
-               #              label = 'Character State Index',
-               #              value = 1,
-               #              min = 1,
-               #              step = 1,
-               #              width = "50%"),
+               fileInput('treefile',
+                         label = '1. Choose your Tree File',
+                         accept = c('text/newick', 'text/plain', '.phy', '.tre', '.tree', '.newick')),
+               fileInput('csvfile',
+                         label = '2. Choose your Metadata File',
+                         accept = c('text/csv', 'text/plain', '.csv', '.txt')),
+               actionButton("getlistbutton", label = "3. List States", class = "btn-primary"),
+               br(),
+               # selectInput("columnselection", "Column Selection:", 
+               #             choices=c("NA")),
+               dataTableOutput("columnselection"),
+               br(),
                radioButtons("metricradio",
-                            label ="Centrality Metric",
+                            label ="4. Pick Centrality Metric",
                             choices = list("Indegree" = 1,
                                            "Outdegree" = 2,
                                            "Betweenness" = 3,
@@ -29,23 +29,23 @@ ui <- tagList(
                                            "Degree" = 5,
                                            "Source Hub Ratio" = 6),
                             selected = 1),
-               actionButton("plotbutton", label = "Generate Network", class = "btn-primary")
+               br(),
+               actionButton("plotbutton", label = "5. Generate Network", class = "btn-primary")
              ),
              mainPanel(
                width = 9,
                tabsetPanel(
                  tabPanel("Network Plot",
-                          # plotOutput("graphplot")
                           visNetworkOutput("graphplot")
                  ),
-                 tabPanel("Nexus Preview",
-                          h4("Nexus File Contents"),
-                          tableOutput("nexustable")
+                 tabPanel("Tree Preview",
+                          h4("Phylogeny Contents"),
+                          plotOutput("treepreview")
                           ),
                  tabPanel("Metrics",
                           downloadButton("downloadmetrics", "Download Output Metrics"),
+                          br(),
                           DT::dataTableOutput("metricstable")
-                          # tableOutput("metricstable")
                           )
                )
              )

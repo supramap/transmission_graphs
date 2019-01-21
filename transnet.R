@@ -20,7 +20,8 @@
 #' @export mapStates
 #' @export getMetadata
 #' @export makeTransNet
-#' @export listCharacterStates
+#' @export listStates
+#' @export getUsableColumns
 #'############################
 # Load Packages
 # library(shiny)
@@ -373,12 +374,49 @@ getMetadata <- function(fileName) {
 #' @param data Input data (result from getMetadata function)
 #'############################
 
-listCharacterStates <- function(data){
-  chardf <- data.frame(`Index` = 1:length(data$characterLabels),
-                       `Character State` = names(data$characterLabels))
-  return(chardf)
+# listCharacterStates <- function(data){
+#   chardf <- data.frame(`Index` = 1:length(data$characterLabels),
+#                        `Character State` = names(data$characterLabels))
+#   return(chardf)
+# }
+
+listStates <- function(csvFileName){
+  dataoriginal <- read.csv(csvFileName, header = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
+  
+  listofcolumns <- data.frame(`Index` = 1:length(colnames(dataoriginal)),
+                              `Column` = colnames(dataoriginal))
+  
+  # listofcolumns <- as.list(dataoriginal)
+  
+  # listofcolumns <- data.frame(`Index` = 1:length(names(as.list(dataoriginal))),
+  #                             `Column` = names(as.list(dataoriginal)))
+  
+  return(listofcolumns)
 }
 
+getUsableColumns <- function(treeFileName, csvFileName){
+  nexusTree2 <- read.tree(treeFileName) #imports file in newick format instead of nexus.
+  
+  dataoriginal = read.csv(csvFileName, header = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
+  
+  sortingtable <- as.data.frame(nexusTree2$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file. 
+  sortingtable <- tibble::rowid_to_column(sortingtable, "ID")
+  names(sortingtable)[2] <- "Accession"
+  sortingdata <- merge(dataoriginal, sortingtable, by = "Accession")
+  data <- sortingdata[order(sortingdata$ID),]
+  
+  listofcolumns <- as.list(dataoriginal)
+  columnaccessions <- as.list(data)
+  accessioncharacter <- as.character(columnaccessions$Accession) #transforms accession from Factor into character
+  selectedcolumn <- as.numeric(as.factor(listofcolumns[[columnSelection]])) #transforms metadata state column from Factor into numeric
+  names(selectedcolumn) <- accessioncharacter # assign accession ID reference to the variable selected
+  
+  distinctvalsbycolumn <- data.frame(t(apply(data, 2, function(x) length(unique(x))))) # Get number of unique values by column.
+  output <- c(names(distinctvalsbycolumn[which(distinctvalsbycolumn>1)])) #Return vector of usable columns
+
+  return(output)
+  
+}
 
 #'############################
 #' @name maketransnet
@@ -427,29 +465,55 @@ listCharacterStates <- function(data){
 #'   $success - a logical vector of length one that says whether the process was a success or not
 #'############################
 
-makeTransNet <- function(fileName, charIndex, centralityMetric){
+makeTransNet <- function(treeFileName, csvFileName, columnSelection, centralityMetric){
   # fileName <- readline(prompt = "Type in the full path to the nexus file you want to read in: ")
-  nexusTree2 <- read.nexus(fileName)
-  nexusData <- getMetadata(fileName)
+  # nexusTree2 <- read.nexus(fileName)
+  # nexusData <- getMetadata(fileName)
   
   #charIndex <- readline(prompt ="Type the number equivalent to the character state index of the nexus file you want to build the network from: ")
-  if (charIndex < 1){
-    cat("ERROR: The character state index must be > 0.")
-  } else{
-    characterIndex <- as.numeric(charIndex) # Transforms the input from string to numeric so it can be loaded on metadataRef
-  }
+  # if (charIndex < 1){
+  #   cat("ERROR: The character state index must be > 0.")
+  # } else{
+  #   characterIndex <- as.numeric(charIndex) # Transforms the input from string to numeric so it can be loaded on metadataRef
+  # }
+  
+  nexusTree2 <- read.tree(treeFileName) #imports file in newick format instead of nexus.
+  
+  dataoriginal = read.csv(csvFileName, header = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
+  
+  sortingtable <- as.data.frame(nexusTree2$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file. 
+  sortingtable <- tibble::rowid_to_column(sortingtable, "ID")
+  names(sortingtable)[2] <- "Accession"
+  sortingdata <- merge(dataoriginal, sortingtable, by = "Accession")
+  data <- sortingdata[order(sortingdata$ID),]
+  
+  listofcolumns <- as.list(dataoriginal)
+  columnaccessions <- as.list(data)
+  accessioncharacter <- as.character(columnaccessions$Accession) #transforms accession from Factor into character
+  selectedcolumn <- as.numeric(as.factor(listofcolumns[[columnSelection]])) #transforms metadata state column from Factor into numeric
+  names(selectedcolumn) <- accessioncharacter #assign accession ID reference to the variable selected
+  
+  characterlabels1 <- unique(listofcolumns[[columnSelection]]) #extract unique labels from selected column
+  characterlabels <- sort(as.character(characterlabels1)) #sort and create list of characters from previous vector - has to sort to match the order from the $country as when it becomes numeric is transformed to numbers in alphabetical order.
+  
+  
   rootedTree <- nexusTree2
   
-  metadataRef <- nexusData$charMatrix[,characterIndex] # CharacterIndex change the number of the character state index of the nexus file you want to use
-  ref2 <- attr(metadataRef, "names")
+  # metadataRef <- nexusData$charMatrix[,characterIndex] # CharacterIndex change the number of the character state index of the nexus file you want to use
+  # ref2 <- attr(metadataRef, "names")
   
   # Builds a hashmap using the leaf node strings as keys and the character states as values
-  H <- hashmap(ref2, metadataRef)
+  # H <- hashmap(ref2, metadataRef)
+  H <- hashmap(accessioncharacter, selectedcolumn)
   
-  numCharStates <- length(nexusData$characterLabels[[characterIndex]]) # Change to the number above
-  ancestralStates = asr_max_parsimony(rootedTree,
-                                      metadataRef,
-                                      numCharStates)
+  # numCharStates <- length(nexusData$characterLabels[[characterIndex]]) # Change to the number above
+  # ancestralStates = asr_max_parsimony(rootedTree,
+  #                                     metadataRef,
+  #                                     numCharStates)
+  
+  numCharStates <- length(characterlabels) ##### change to the number above
+  
+  ancestralStates = asr_max_parsimony(rootedTree, selectedcolumn, numCharStates)
   
   # Deletes all keys and values from the hashmap
   H$clear()
@@ -457,13 +521,13 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
   # Rebuilds hashmap using sequential numbers 1 through the number of leaf nodes as the key/index 
   #and using the integer values found in metadataStates as values. It essentially builds a hashmap 
   #of the leaf nodes of the tree: their index and their value.
-  for(i in 1:length(metadataRef)) {
-    H$insert(i, metadataRef[i])
+  for(i in 1:length(selectedcolumn)) {
+    H$insert(i, selectedcolumn[i])
   }
   
   # Loop through the inner nodes of the phylogenetic tree and assign the most likely character state
   # to that tree node;
-  numLeaves <- length(metadataRef)
+  numLeaves <- length(selectedcolumn)
   numInnerNodes <- rootedTree$Nnode
   totalTreeNodes <- numLeaves + numInnerNodes
   innerNodeIndices <- (numLeaves+1):totalTreeNodes
@@ -508,14 +572,16 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
   dat <- data.frame(from = sourceList,
                     to = targetList)
   #counts the frequency of a specific state change occurring
-  edges <- count(dat)
+  edges <- plyr::count(dat)
   names(edges)[names(edges) == "freq"] <- "value"
   
   # Extract the selected metadata state label from the nexusData
-  metastates <- nexusData$characterLabels[[characterIndex]]
+  # metastates <- nexusData$characterLabels[[characterIndex]]
+  metastates <- characterlabels
   
   nodes <- data.frame(id = 1:length(metastates),
                       label = metastates) #, fixed = list(x = T, y = T))
+  
   igraph.Object <- graph.data.frame(edges,
                                     directed = T,
                                     vertices = nodes)
@@ -560,7 +626,8 @@ makeTransNet <- function(fileName, charIndex, centralityMetric){
   metrics <- as.data.frame(outputFileMatrix)
   
   write.table(metrics,
-              file = paste0(fileName,"_metrics.csv"),
+              append = FALSE,
+              file = paste0(treeFileName,"_metrics.csv"),
               sep = ",",
               fileEncoding = "UTF-8",
               col.names = TRUE,

@@ -21,8 +21,8 @@ library(magrittr)
 
 ui <- c("3") #SHR
 
-wd4 <- ("/Users/schneider/Documents/StrainHub/Implementations")
-fileName <- c("/Users/schneider/Documents/StrainHub/Implementations/chikv_westernafrica.phy")
+wd4<- ("data/")
+fileName <- c("data/chikv_westernafrica.phy")
 setwd(wd4)
 
 #\
@@ -348,7 +348,7 @@ getMetadata <- function(fileName) {
 
 nexusTree2 <- read.tree(fileName) #imports file in newick format instead of nexus.
 
-dataoriginal = read.csv("chikv_westernafrica_metadata.csv", header = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
+dataoriginal = read.csv("data/chikv_westernafrica_metadata.csv", header = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
 
 sortingtable <- as.data.frame(nexusTree2$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file. 
 sortingtable <- tibble::rowid_to_column(sortingtable, "ID")
@@ -467,7 +467,7 @@ for(row in 1:nrow(rootedTree$edge))
 #in the phylogenetic tree;
 dat <- data.frame(from = sourceList, to = targetList)
 #counts the frequency of a specific state change occurring
-edges <- count(dat)
+edges <- plyr::count(dat)
 names(edges)[names(edges) == "freq"] <- "value"
 
 # Extract the selected metadata state label from the nexusData
