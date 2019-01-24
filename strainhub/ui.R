@@ -1,5 +1,17 @@
 library(shiny)
 library(shinythemes)
+library(ape)
+library(castor)
+library(visNetwork)
+library(hashmap)
+library(plyr)
+library(network)
+library(igraph)
+library(data.table)
+library(DT)
+library(magrittr)
+library(htmlwidgets)
+source("../transnet.R")
 
 ui <- tagList(
   navbarPage(
