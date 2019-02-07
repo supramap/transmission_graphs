@@ -419,7 +419,7 @@ getUsableColumns <- function(treeFileName, csvFileName){
 }
 
 #'############################
-#' @name maketransnet
+#' @name makeTransNet
 #' @param fileName Path to the nexus file to be read in.
 #'    Character string.
 #' @param charIndex The character state index of the nexus file from which the network is to be built.

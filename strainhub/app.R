@@ -24,3 +24,19 @@ runApp('strainhub')
 
 #runApp('shiny', display.mode = "showcase")
 
+#############
+## Install required packages
+# install.packages(c("shiny",
+#                    "shinythemes",
+#                    "ape",
+#                    "castor",
+#                    "visNetwork",
+#                    "hashmap",
+#                    "plyr",
+#                    "network",
+#                    "igraph",
+#                    "data.table",
+#                    "DT",
+#                    "magrittr",
+#                    "htmlwidgets",
+#                    "markdown"))

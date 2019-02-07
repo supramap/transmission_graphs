@@ -56,10 +56,27 @@ server <- function(input, output, session) {
                            # columnSelection = input$columnselection,
                            columnSelection = input$columnselection_row_last_clicked,
                            centralityMetric = input$metricradio)
+    # height = paste0(0.75*session$clientData$output_graph_width,"px")
   })
   
   # output$graphplot <- renderPlot({print(graph())})
   output$graphplot <- renderVisNetwork({print(graph())})
+  
+  ## Export Plot
+  # output$exportplot <- downloadHandler(
+  #   filename =  function() {
+  #     paste0(input$treefile, "_StrainHub_network.html")
+  #   },
+  #   # content is a function with argument file. content writes the plot to the device
+  #   content = function(file) {
+  #     #png(file) # open the png device
+  #     #visNetwork::visExport(graph, type = "png", name = file)
+  #     visSave(graph(), file, selfcontained = TRUE, background = "white")
+  #     #graph() # draw the plot
+  #     #dev.off()  # turn the device off
+  #   } 
+  # )
+  
   
   ## Tree File Preview
   output$treepreview <- renderPlot({
@@ -92,10 +109,10 @@ server <- function(input, output, session) {
   # Downloadable CSV of metrics
   output$downloadmetrics <- downloadHandler(
     filename = function() {
-      paste0(input$treefile, "_metrics.csv")
+      paste0(input$treefile, "_StrainHub_metrics.csv")
     },
     content = function(file) {
-      write.csv(read.csv(paste0(input$treefile$datapath,"_metrics.csv")), file, row.names = FALSE)
+      write.csv(read.csv(paste0(input$treefile$datapath,"_StrainHub_metrics.csv")), file, row.names = FALSE)
     }
   )
   

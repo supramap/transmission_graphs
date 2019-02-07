@@ -68,4 +68,4 @@ The overall quality of the transmission network generated on StrainHub rests on 
 References
 ------------------------
 
-[Adriano de Bernardi Schneider, _Arboviruses: The Hidden Path of an Imminent Threat_, University of North Carolina at Charlotte, 2018, ProQuest (10979260). ISBN: 9780438668379](https://librarylink.uncc.edu/login?url=https://search-proquest-com.librarylink.uncc.edu/docview/2138348703?accountid=14605)
+[Adriano de Bernardi Schneider, _Arboviruses: The Hidden Path of an Imminent Threat_, University of North Carolina at Charlotte, 2018, ProQuest (10979260). ISBN: 9780438668379](https://pqdtopen.proquest.com/pubnum/10979260.html)
