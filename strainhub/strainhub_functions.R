@@ -627,7 +627,7 @@ makeTransNet <- function(treeFileName, csvFileName, columnSelection, centralityM
   
   write.table(metrics,
               append = FALSE,
-              file = paste0(treeFileName,"_metrics.csv"),
+              file = paste0(treeFileName,"_StrainHub_metrics.csv"),
               sep = ",",
               fileEncoding = "UTF-8",
               col.names = TRUE,

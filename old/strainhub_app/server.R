@@ -11,7 +11,7 @@ library(data.table)
 library(DT)
 library(magrittr)
 library(htmlwidgets)
-source("../transnet.R")
+source("strainhub_functions.R")
 
 server <- function(input, output, session) {
   
