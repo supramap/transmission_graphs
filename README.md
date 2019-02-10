@@ -1,8 +1,11 @@
 # StrainHub
-<h4 align = "right">Adriano de Bernardi Schneider, Ph.D.<br> John Williams<br> Mike Cioce<br> Colby T. Ford, Ph.D.<br>Daniel Janies, Ph.D.</h3>
+<h4 align = "right">Adriano de Bernardi Schneider, Ph.D.<br> Colby T. Ford, Ph.D.<br>John Williams<br> Mike Cioce<br>Daniel Janies, Ph.D.</h3>
 
 ## About
 Strainhub is designed as a web-based software to generate disease transmission networks and associated metrics from a combination of a phylogenetic tree and a metadata associated file. The software maps the metadata onto the tree and performs a parsimony ancestry reconstruction step to create links between the associated metadata and enable the construction of the network.
+
+![StrainHub CHIKV Network](https://github.com/supramap/transmission_graphs/raw/master/chikv_StrainHub_network.png "Sample Chikungunya Virus Network")
+
 
 ## Use StrainHub Online
 You'll need 2 files to get started
