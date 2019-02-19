@@ -34,7 +34,7 @@ ui <- tagList(
                width = 3,
                fileInput('treefile',
                          label = '1. Choose your Tree File',
-                         accept = c('text/newick', 'text/plain', '.phy', '.tre', '.tree', '.newick')),
+                         accept = c('text/newick', 'text/plain', '.phy', '.tre', '.tree', '.newick', '.nwk')),
                fileInput('csvfile',
                          label = '2. Choose your Metadata File',
                          accept = c('text/csv', 'text/plain', '.csv', '.txt')),
