@@ -8,6 +8,7 @@ library(shiny)
 
 ## Load other libraries
 library(shinythemes)
+library(readr)
 library(ape)
 library(castor)
 library(visNetwork)
@@ -20,6 +21,9 @@ library(DT)
 library(magrittr)
 library(htmlwidgets)
 library(markdown)
+#library(rmarkdown)
+#library(ggtree)
+#library(plotly)
 source("strainhub_functions.R")
 
 # Define UI for application
@@ -60,16 +64,16 @@ ui <- tagList(
                width = 9,
                tabsetPanel(
                  tabPanel("Network Plot",
-                          # downloadButton("exportplot", "Export Plot"),
+                          div(downloadButton("exportplot", "Export Plot"), style="float:right"),
                           # visNetworkOutput("graphplot")
                           visNetworkOutput("graphplot", height = "600px")
                  ),
                  tabPanel("Tree Preview",
                           h4("Phylogeny Contents"),
-                          plotOutput("treepreview")
+                          plotOutput("treepreview", height = "600px")
                  ),
                  tabPanel("Metrics",
-                          downloadButton("downloadmetrics", "Download Output Metrics"),
+                          div(downloadButton("downloadmetrics", "Download Output Metrics"), style="float:right"),
                           br(),
                           DT::dataTableOutput("metricstable")
                  )
@@ -126,25 +130,27 @@ server <- function(input, output, session) {
                            columnSelection = input$columnselection_row_last_clicked,
                            centralityMetric = input$metricradio)
     # height = paste0(0.75*session$clientData$output_graph_width,"px")
+    
   })
   
   # output$graphplot <- renderPlot({print(graph())})
   output$graphplot <- renderVisNetwork({print(graph())})
   
   ## Export Plot
-  # output$exportplot <- downloadHandler(
-  #   filename =  function() {
-  #     paste0(input$treefile, "_StrainHub_network.html")
-  #   },
-  #   # content is a function with argument file. content writes the plot to the device
-  #   content = function(file) {
-  #     #png(file) # open the png device
-  #     #visNetwork::visExport(graph, type = "png", name = file)
-  #     visSave(graph(), file, selfcontained = TRUE, background = "white")
-  #     #graph() # draw the plot
-  #     #dev.off()  # turn the device off
-  #   } 
-  # )
+  output$exportplot <- downloadHandler(
+    filename =  function() {
+      paste0(input$treefile, "_StrainHub_network.pdf")
+    },
+    # content is a function with argument file. content writes the plot to the device
+    content = function(file){
+      visNetwork::visSave(graph(), file) ## Works
+      #visNetwork::visExport(graph(), type = "pdf", name = file)
+      # ggsave(file, plot = graph(), device = "pdf")
+      # grDevices::pdf(file = file)
+      # print(graph())
+      # dev.off()
+    }
+  )
   
   
   ## Tree File Preview
@@ -153,22 +159,40 @@ server <- function(input, output, session) {
     treepreview <- ape::read.tree(input$treefile$datapath)
     #return(treepreview)
     plot(treepreview)
+    #ggtree(treepreview) + geom_tiplab()
+    
   })
   
-  ## File Output
-  output$metricstable <- DT::renderDataTable({DT::datatable(read.csv(paste0(input$treefile$datapath,"_StrainHub_metrics.csv")),
-                                                            colnames = c("Metastates",
-                                                                         "Degree",
-                                                                         "Indegree",
-                                                                         "Outdegree",
-                                                                         "Betweeness",
-                                                                         "Closeness",
-                                                                         "Source Hub Ratio"),
-                                                            options = list(autoWidth = TRUE,
-                                                                           initComplete = JS(
-                                                                             "function(settings, json) {",
-                                                                             "$(this.api().table().header()).css({'background-color': '#2d3e4f', 'color': '#fff'});",
-                                                                             "}")))})
+  ## Metrics File Output
+  metrics <- eventReactive(input$plotbutton, {
+    validate(
+      need(input$treefile != "", "\n1. Please upload a tree file."),
+      need(input$csvfile != "",  "\n2. Please upload the accompanying metadata file."),
+      # need(input$columnSelection != "",  "\n3. List the columns and pick one to use.")
+      if (exists("input$treefile") & exists("input$csvfile")){
+        need(!input$input$columnselection_row_last_clicked %in% getUsableColumns(treeFileName = input$treefile$datapath,
+                                                                                 csvFileName = input$csvfile$datapath),
+             "\n3. Please select a different column. This column has all identical values.")
+      }
+      
+    )
+    metrics <- DT::datatable(read.csv(paste0(input$treefile$datapath,"_StrainHub_metrics.csv")),
+                             colnames = c("Metastates",
+                                          "Degree",
+                                          "Indegree",
+                                          "Outdegree",
+                                          "Betweeness",
+                                          "Closeness",
+                                          "Source Hub Ratio"),
+                             options = list(autoWidth = TRUE,
+                                            initComplete = JS(
+                                              "function(settings, json) {",
+                                              "$(this.api().table().header()).css({'background-color': '#2d3e4f', 'color': '#fff'});",
+                                              "}")))
+    
+  })
+  
+  output$metricstable <- DT::renderDataTable({metrics()})
   
   # output$metricstable <- renderTable({
   #   metrics <- read.csv(paste0(input$treefile$datapath,"_metrics.csv"))

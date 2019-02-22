@@ -7,6 +7,7 @@
 #' @author Colby Ford
 #' 
 #' @import shiny
+#' @import readr
 #' @import ape
 #' @import castor
 #' @import visNetwork
@@ -381,7 +382,7 @@ getMetadata <- function(fileName) {
 # }
 
 listStates <- function(csvFileName){
-  dataoriginal <- read.csv(csvFileName, header = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
+  dataoriginal <- readr::read_csv(csvFileName, col_names = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
   
   listofcolumns <- data.frame(`Index` = 1:length(colnames(dataoriginal)),
                               `Column` = colnames(dataoriginal))
@@ -397,15 +398,16 @@ listStates <- function(csvFileName){
 getUsableColumns <- function(treeFileName, csvFileName){
   nexusTree2 <- read.tree(treeFileName) #imports file in newick format instead of nexus.
   
-  dataoriginal = read.csv(csvFileName, header = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
+  dataoriginal <- readr::read_csv(csvFileName, col_names = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
   
   sortingtable <- as.data.frame(nexusTree2$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file. 
-  sortingtable <- tibble::rowid_to_column(sortingtable, "ID")
+  sortingtable <- tibble::rowid_to_column(sortingtable, "N_ID") ## Was "ID"
   names(sortingtable)[2] <- "Accession"
   sortingdata <- merge(dataoriginal, sortingtable, by = "Accession")
-  data <- sortingdata[order(sortingdata$ID),]
+  data <- sortingdata[order(sortingdata$N_ID),] ## Was "ID"
   
-  listofcolumns <- as.list(dataoriginal)
+  # listofcolumns <- as.list(dataoriginal)
+  listofcolumns <- as.list(data)
   columnaccessions <- as.list(data)
   accessioncharacter <- as.character(columnaccessions$Accession) #transforms accession from Factor into character
   selectedcolumn <- as.numeric(as.factor(listofcolumns[[columnSelection]])) #transforms metadata state column from Factor into numeric
@@ -479,15 +481,16 @@ makeTransNet <- function(treeFileName, csvFileName, columnSelection, centralityM
   
   nexusTree2 <- read.tree(treeFileName) #imports file in newick format instead of nexus.
   
-  dataoriginal = read.csv(csvFileName, header = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
+  dataoriginal <- readr::read_csv(csvFileName, col_names = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work. 
   
   sortingtable <- as.data.frame(nexusTree2$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file. 
-  sortingtable <- tibble::rowid_to_column(sortingtable, "ID")
+  sortingtable <- tibble::rowid_to_column(sortingtable, "N_ID") ## Was "ID"
   names(sortingtable)[2] <- "Accession"
   sortingdata <- merge(dataoriginal, sortingtable, by = "Accession")
-  data <- sortingdata[order(sortingdata$ID),]
+  data <- sortingdata[order(sortingdata$N_ID),] ## Was "ID"
   
-  listofcolumns <- as.list(dataoriginal)
+  # listofcolumns <- as.list(dataoriginal)
+  listofcolumns <- as.list(data)
   columnaccessions <- as.list(data)
   accessioncharacter <- as.character(columnaccessions$Accession) #transforms accession from Factor into character
   selectedcolumn <- as.numeric(as.factor(listofcolumns[[columnSelection]])) #transforms metadata state column from Factor into numeric
